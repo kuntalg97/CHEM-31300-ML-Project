@@ -1,0 +1,39 @@
+#VARIABLES
+variable TEMP           equal   300.0
+variable T2		equal   300.0
+
+units         metal
+dimension     3
+atom_style    atomic
+atom_modify   map yes
+boundary      p p p
+processors    * * *
+newton        on
+
+read_data "data.water_AA_dp"
+pair_style mace no_domain_decomposition
+
+pair_coeff * * /project2/gavoth/kuntalg/Softwares/MACE/mace_matpes_r2scan_0/MACE-matpes-r2scan-omat-ft.model-lammps.pt H O
+
+velocity all create ${TEMP} 61231 mom yes dist gaussian 
+
+timestep 0.001
+#
+compute 1 all pressure NULL virial
+compute 2 all pressure NULL pair
+compute 3 all pressure NULL bond angle 
+
+thermo 10
+
+thermo_style  custom  step spcpu  temp  ke pe etotal  epair lx ly lz  pxx pyy pzz c_1[1] c_2[1] c_3[1] c_1[2] c_2[2] c_3[2]
+
+fix 1 all nvt temp 300.0 300.0 0.1
+dump 1 all custom 500 dump.lammpstrj id type x y z
+dump_modify 1 sort id
+restart 1000 config.restart1 config.restart2
+
+run 1000000
+#run 2500000
+
+write_dump all atom all_traj.lammpstrj
+write_data water.data 

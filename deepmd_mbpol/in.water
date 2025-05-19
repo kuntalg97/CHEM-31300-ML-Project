@@ -1,0 +1,33 @@
+# CG input
+units        metal
+boundary     p p p
+atom_style   atomic
+
+read_data       data.water_AA_dp_difflabel
+
+# force field parameters
+pair_style      deepmd   graph-compress.pb
+
+pair_coeff      * *
+
+mass            1  15.9994 
+mass            2  1.0080
+
+velocity all create 300.0 ${SEED} dist gaussian mom no rot no
+
+timestep 0.001
+reset_timestep 0
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+thermo 2000
+thermo_style multi
+
+# NVT run
+fix 2 all nvt temp 300.0 300.0 0.1
+dump 2 all custom 500 water_aa_nn.lammpstrj id type x y z fx fy fz vx vy vz
+dump_modify 2 sort id
+
+restart 5000 water_cg.restart1 water_cg.restart2
+
+# 10 ns
+run 20000000 
